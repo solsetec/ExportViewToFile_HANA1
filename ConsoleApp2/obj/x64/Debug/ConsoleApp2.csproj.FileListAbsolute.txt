@@ -38,3 +38,6 @@ C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\D
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Memory.xml
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Numerics.Vectors.xml
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\obj\x64\Debug\ConsoleApp2.exe.config
+C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Configuration.ConfigurationManager.dll
+C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Configuration.ConfigurationManager.xml

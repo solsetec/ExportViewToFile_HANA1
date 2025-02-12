@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ using Newtonsoft.Json;
 using Spire.Xls; // Exportar a Excel
 using System.Data.Odbc;
 using System.Security.Cryptography;
+using DocumentFormat.OpenXml.ExtendedProperties;
 //using System.Data.OleDb; // Exportar csv
 
 
@@ -135,12 +137,12 @@ namespace ConsoleApp2
         {
             try
             {
-                oCompany = new Company();
-                oCompany.Server = "NDB@192.168.160.12:30013";
-                oCompany.DbServerType = BoDataServerTypes.dst_HANADB;
-                oCompany.CompanyDB = "TEST_SURCOMPANY_270125";
-                oCompany.UserName = "manager";
-                oCompany.Password = "HYC909";
+                oCompany = new SAPbobsCOM.Company();
+                oCompany.Server = ConfigurationManager.AppSettings["Server"];
+                oCompany.DbServerType = (BoDataServerTypes)Enum.Parse(typeof(BoDataServerTypes), ConfigurationManager.AppSettings["ServerType"]);
+                oCompany.CompanyDB = ConfigurationManager.AppSettings["CompanyDB"];
+                oCompany.UserName = ConfigurationManager.AppSettings["UserName"];
+                oCompany.Password = ConfigurationManager.AppSettings["Password"];
                 oCompany.language = BoSuppLangs.ln_Spanish_La;
 
                 if (oCompany.Connect() != 0)
@@ -163,24 +165,24 @@ namespace ConsoleApp2
         static string ConecctOdbc()
         {
 
-            string CadOdbc = "";
+            string CadOdbc = ConfigurationManager.AppSettings["CadenaODBC"];
             String R = "";
             
             try
 
             {
 
-                if (IntPtr.Size == 8) //64 bits - diferente de 8 32 bits
+                if (IntPtr.Size != 8) //64 bits - diferente de 8 32 bits
                 {
                     //CadOdbc = "DRIVER={HDBODBC};SERVERNODE=@solsetec;CS=SURCOMPANY;"; 
                     //CadOdbc = "Driver={HDBODBC};SERVERNODE=@solsetec;CS=SURCOMPANY;"; 
-                     CadOdbc = "Driver={HDBODBC}; ServerNode = 192.168.160.12:30013; Uid=system; Pwd=Asdf1234$; databaseName=NDB"; 
+                    CadOdbc = CadOdbc.Replace("HDBODBC", "HDBODBC32");
 
                 }
                 else
                 {
                     //CadOdbc = "Driver={HDBODBC32};SERVERNODE=@solsetec;CS=SURCOMPANY;";
-                    CadOdbc = "Driver={HDBODBC32}; ServerNode = 192.168.160.12:30013; Uid=system; Pwd=Asdf1234$; databaseName=NDB";
+                    
                 }
 
                 CnnHANA = new OdbcConnection(CadOdbc); 
@@ -381,13 +383,13 @@ namespace ConsoleApp2
         #region FUNexportarArchivo
         static bool ExportView(String queryExport, String Format,  String FilePath, String FileName) 
         {
+            var separadorCsv = ConfigurationManager.AppSettings["SeparadorCSV"];
             bool bandera = true;
             String json = "";
             String FileExport = FilePath+"\\"+FileName+"."+Format;
             //Recordset ors = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
             //ors.DoQuery(queryExport);
             CnnHANA.Open();
-            CnnHANA.ChangeDatabase("TEST_SURCOMPANY_270125");
             DataTable dataTable = new DataTable();
             using (OdbcDataAdapter adapter = new OdbcDataAdapter(queryExport, CnnHANA))
             {
@@ -413,7 +415,7 @@ namespace ConsoleApp2
 
                         case "TXT":
 
-                            ExportarDataTableACSV(dataTable, FileExport, "\t");
+                            ExportarDataTable(dataTable, FileExport, "\t");
 
 
 
@@ -421,14 +423,12 @@ namespace ConsoleApp2
 
                         case "CSV":
 
-                            ExportarDataTableACSV(dataTable, FileExport, ";");
+                            ExportarDataTable(dataTable, FileExport, separadorCsv);
 
                             break;
 
                         case "XLSX":
 
-                            //string ruta = @"c:\\temp\\ArchivoExcel.xlsx";
-                            // Crear un nuevo libro de trabajo de Excel
                             ExportarNExcel(dataTable,FileExport);
                             break;
                         
@@ -453,7 +453,7 @@ namespace ConsoleApp2
         }
         #endregion
 
-        static void ExportarDataTableACSV(DataTable dataTable, string rutaArchivo, string separador)
+        static void ExportarDataTable(DataTable dataTable, string rutaArchivo, string separador)
         {
             StringBuilder sb = new StringBuilder();
 
