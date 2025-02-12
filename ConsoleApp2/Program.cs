@@ -1,19 +1,13 @@
 ﻿using System;
 using System.Configuration;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using ClosedXML.Excel;
-using System.Threading.Tasks;
 using System.Data;
-using SAPbobsCOM; // SAP
-using System.IO; // Exportar plano
+using SAPbobsCOM;
+using System.IO;
 using Newtonsoft.Json;
-using Spire.Xls; // Exportar a Excel
 using System.Data.Odbc;
-using System.Security.Cryptography;
-using DocumentFormat.OpenXml.ExtendedProperties;
-//using System.Data.OleDb; // Exportar csv
+
 
 
 namespace ConsoleApp2
@@ -21,8 +15,6 @@ namespace ConsoleApp2
     class Program
     {
         public static SAPbobsCOM.Company oCompany;
-        public static String cadena_txt;
-        public static String cadena_csv; 
         public static OdbcConnection CnnHANA;
 
         static void Main(string[] args)
@@ -32,7 +24,6 @@ namespace ConsoleApp2
             Conexion();
             ConecctOdbc();
             String consulta;
-            String Result;
             var respuesta = false;
             Recordset oRecord = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
 
@@ -73,64 +64,13 @@ namespace ConsoleApp2
                 }
 
             }
-            catch (Exception ex) 
+            catch (Exception) 
             {
             }
             #endregion
-
-            /*Recordset oRecordset;
-            if (Conexion())
-            {
-                Console.WriteLine("Exitoso");
-
-                oRecordset = RecordSet();
-                DataTable dataTable = ConvertRecordsetToDataTable(oRecordset);
-                ExportJson(oRecordset, dataTable);
-                ExportPlano();
-                ExportarExcel(dataTable);
-
-                Console.WriteLine("Proceso completado.");
-               //oCompany.Disconnect();
-            }*/
         }
 
-        /*static Recordset RecordSet()
-        {
-            String query;
-            Recordset oRecordset = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
-
-            try
-            {
-               
-                    query = "SELECT T0.\"ItemCode\", T0.\"ItemName\" FROM \"OITM\" T0 WHERE T0.\"QryGroup5\" ='Y'";
-                    oRecordset.DoQuery(query);
-                    */
-
-
-        /* oRecordset.MoveFirst();
-         while (!oRecordset.EoF)
-         {
-            // int docEntry = (int)oRecordset.Fields.Item("DocEntry").Value;
-             ItemCode = oRecordset.Fields.Item(0).Value.ToString();
-             ItemName = oRecordset.Fields.Item(1).Value.ToString();
-
-
-         //Console.WriteLine(ItemCode+" "+ItemName);
-             cadena = cadena+linea+" "+ItemCode + "\t" + ItemName + "\r\n";
-             oRecordset.MoveNext();
-             linea++;
-         }*/
-
-        /*
-                return oRecordset;
-            }
-            catch (Exception err)
-            {
-                Console.WriteLine(err);
-                return oRecordset;
-            }
-            return oRecordset;
-        }*/
+       
 
         #region conexionSAP
         static bool Conexion()
@@ -172,16 +112,14 @@ namespace ConsoleApp2
 
             {
 
-                if (IntPtr.Size != 8) //64 bits - diferente de 8 32 bits
+                if (IntPtr.Size != 8) 
                 {
-                    //CadOdbc = "DRIVER={HDBODBC};SERVERNODE=@solsetec;CS=SURCOMPANY;"; 
-                    //CadOdbc = "Driver={HDBODBC};SERVERNODE=@solsetec;CS=SURCOMPANY;"; 
+ 
                     CadOdbc = CadOdbc.Replace("HDBODBC", "HDBODBC32");
 
                 }
                 else
                 {
-                    //CadOdbc = "Driver={HDBODBC32};SERVERNODE=@solsetec;CS=SURCOMPANY;";
                     
                 }
 
@@ -197,7 +135,7 @@ namespace ConsoleApp2
                 }
 
             }
-            catch (Exception ex) 
+            catch (Exception) 
             {
                 R = "Error";         
             }
@@ -207,114 +145,10 @@ namespace ConsoleApp2
         #endregion
 
 
-
-        /**
-        * Crear Archivo Plano en TXT
-        */
-        /*static bool ExportPlano()
-        {
-            string path = @"c:\Temp\archivo_plano.txt";
-            if (!File.Exists(path))
-            {
-                // Create a file to write to.
-                using (StreamWriter sw = File.CreateText(path))
-                {
-                    sw.Write(cadena_txt);
-                }
-            }
-
-            // Open the file to read from.
-            using (StreamReader sr = File.OpenText(path))
-            {
-                string s = "";
-                while ((s = sr.ReadLine()) != null)
-                {
-                    Console.WriteLine(s);
-                }
-                return true;
-            }
-
-            return true;
-        }*/
-
-        /*static bool ExportJson(Recordset oRecordset, DataTable dataTable)
-        {
-            string outputFilePath = @"c:\\temp\\archivo_json.json";
-            try
-            {
-                // 2. Convertir el Recordset a DataTable
-                //DataTable dataTable = ConvertRecordsetToDataTable(oRecordset);
-
-                // 3. Serializar el DataTable a JSON
-                string jsonString = JsonConvert.SerializeObject(dataTable, Formatting.Indented);
-
-                // 4. Guardar la cadena JSON en un archivo
-                File.WriteAllText(outputFilePath, jsonString);
-
-                Console.WriteLine("Archivo JSON creado con éxito en: " + outputFilePath);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }*/
-
-        //static DataTable ConvertRecordsetToDataTable(Recordset recordset)
-        //{
-        //    DataTable dataTable = new DataTable();
-            
-        //    // Crear las columnas del DataTable
-        //    for (int i = 0; i < recordset.Fields.Count; i++)
-        //    {
-        //        dataTable.Columns.Add(recordset.Fields.Item(i).Name);
-
-        //    }
-
-        //    // Rellenar el DataTable con los datos del Recordset
-        //    while (!recordset.EoF)
-        //    {
-        //        DataRow row = dataTable.NewRow();
-        //        for (int i = 0; i < recordset.Fields.Count; i++)
-        //        {
-        //            row[i] = recordset.Fields.Item(i).Value;
-        //            if (i < recordset.Fields.Count+1)
-        //                cadena_txt = cadena_txt + row[i] + "\t";
-        //            else
-        //                cadena_txt = cadena_txt + row[i];
-        //        }
-        //        dataTable.Rows.Add(row);
-                
-        //        cadena_txt = cadena_txt + "\r\n";
-        //        recordset.MoveNext();
-        //    }
-        //    return dataTable;
-        //}
-
-        
-        //static bool ExportarExcel(DataTable dataTable)
-        //{
-        //    string ruta = @"c:\\temp\\archivo_excel.xls";
-        //    // Crear un nuevo libro de trabajo de Excel
-        //    Workbook workbook = new Workbook();
-        //    Worksheet sheet = workbook.Worksheets[0];
-
-        //    // Insertar el DataTable en la hoja de cálculo
-        //    sheet.InsertDataTable(dataTable, true, 1, 1);
-
-        //    // Guardar el archivo de Excel
-        //    workbook.SaveToFile(ruta, ExcelVersion.Version2013);
-        //    return true;
-        //}
-
-
         #region FUNobtenerParametros
         static DataTable ObtenerParametos(String query)
         {
             DataTable Parametros = new DataTable();
-            String Query = "";
             Recordset oRecord = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
 
             oRecord.DoQuery(query);
@@ -360,8 +194,6 @@ namespace ConsoleApp2
             try
             {
 
-            
-                // Crear un nuevo libro de trabajo de Excel
                 string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), ruta);
 
                 using (XLWorkbook wb = new XLWorkbook())
@@ -384,20 +216,13 @@ namespace ConsoleApp2
         static bool ExportView(String queryExport, String Format,  String FilePath, String FileName) 
         {
             var separadorCsv = ConfigurationManager.AppSettings["SeparadorCSV"];
-            bool bandera = true;
-            String json = "";
             String FileExport = FilePath+"\\"+FileName+"."+Format;
-            //Recordset ors = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
-            //ors.DoQuery(queryExport);
             CnnHANA.Open();
             DataTable dataTable = new DataTable();
             using (OdbcDataAdapter adapter = new OdbcDataAdapter(queryExport, CnnHANA))
             {
-                 //reader2 = cmd.ExecuteReader();
-                //reader2.Close();
                 adapter.Fill(dataTable);
             }
-                //DataTable dataTable = ConvertRecordsetToDataTable(ors);
             
             try
             {
@@ -445,7 +270,7 @@ namespace ConsoleApp2
             }
             catch
             { 
-            Exception ex;
+            Exception exception;
                 CnnHANA.Close();
             }
             
