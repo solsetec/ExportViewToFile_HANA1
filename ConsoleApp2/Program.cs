@@ -8,8 +8,6 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Data.Odbc;
 
-
-
 namespace ConsoleApp2
 {
     class Program
@@ -17,6 +15,7 @@ namespace ConsoleApp2
         public static SAPbobsCOM.Company oCompany;
         static OdbcConnection CnnHANA;
         public static String DataBaseName = ConfigurationManager.AppSettings["CompanyDB"];
+        public static String NombreConsulta = ConfigurationManager.AppSettings["NombreConsulta"];
 
 
 
@@ -25,17 +24,26 @@ namespace ConsoleApp2
 
         {
             Conexion();
-            //ConecctOdbc();
             String consulta;
             var respuesta = false;
-            Recordset oRecord = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
 
+            #region Recuperar query para recorrer UDO
+            string RecuperaQuery()
+            {
+                string query = $"SELECT \"QString\" FROM OUQR WHERE \"QName\" = '{NombreConsulta}'";
+                Recordset oRecord1 = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
+                oRecord1.DoQuery(query);
 
+                return oRecord1.Fields.Item(0).Value.ToString();
+            }
+            #endregion
 
             #region Recorrer Parametros SAP
             try
             {
-                consulta = "SELECT T0.\"Code\", T0.\"U_SOL_VISTA\", T0.\"U_SOL_ARCHIVO\", T0.\"U_SOL_RUTA\", T0.\"U_SOL_FORMATO\", T0.\"U_SOL_ACTIVO\", T0.\"U_SOL_AHORA\" FROM \"@SOL_EXPORT_VIEW\"  T0";
+               // consulta = "SELECT T0.\"Code\", T0.\"U_SOL_VISTA\", T0.\"U_SOL_ARCHIVO\", T0.\"U_SOL_RUTA\", T0.\"U_SOL_FORMATO\", T0.\"U_SOL_ACTIVO\", T0.\"U_SOL_AHORA\" FROM \"@SOL_EXPORT_VIEW\"  T0";
+                consulta = RecuperaQuery();
+
 
                 DataTable Parametros = ObtenerParametos(consulta);
                 try
@@ -60,16 +68,19 @@ namespace ConsoleApp2
                 }
                 catch (Exception ex)
                 {
-                    EscribeLog("Error en conexion SAP" + ex.StackTrace.ToString());
+                    EscribeLog("Obtener Parametros" + ex.StackTrace.ToString());
                 }
 
             }
-            catch (Exception) 
+            catch (Exception ex) 
             {
+                RegistroLogsSAP("Obtener Parametros", ex.StackTrace.ToString());
+                EscribeLog("Obtener Parametros" + ex.StackTrace.ToString());
             }
             #endregion
         }
 
+        #region Escribir en archivo Log
         static void EscribeLog(String Message)
         {
             var LogFilePath = ConfigurationManager.AppSettings["LogFilePath"];
@@ -78,6 +89,7 @@ namespace ConsoleApp2
                 SW.WriteLine(DateTime.Now + "|" + Message);
             }
         }
+        #endregion
 
 
         #region conexionSAP
@@ -217,6 +229,7 @@ namespace ConsoleApp2
         }
         #endregion
 
+        #region Funcion para exportar Excel
         static bool ExportarNExcel(DataTable dataTable, String ruta)
         {
             try
@@ -240,6 +253,8 @@ namespace ConsoleApp2
             }
             return true;
         }
+        #endregion
+
         #region FUNexportarArchivo
         static bool ExportView(String queryExport, String Format,  String FilePath, String FileName) 
         {
@@ -306,6 +321,7 @@ namespace ConsoleApp2
         }
         #endregion
 
+        #region funcion para exportar archivos planos
         static void ExportarDataTable(DataTable dataTable, string rutaArchivo, string separador)
         {
             StringBuilder sb = new StringBuilder();
@@ -332,7 +348,9 @@ namespace ConsoleApp2
             // Guardar el archivo CSV
             File.WriteAllText(rutaArchivo, sb.ToString(), Encoding.UTF8);
         }
+        #endregion
 
+        #region funcion para registar logs en SAP
         static void RegistroLogsSAP(string Etapa, string Mensaje)
         {
             //var CadOdbc = ConfigurationManager.AppSettings["CadenaODBC"];
@@ -354,6 +372,7 @@ namespace ConsoleApp2
             }
             
         }
+        #endregion
 
     }
 
