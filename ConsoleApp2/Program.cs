@@ -15,14 +15,17 @@ namespace ConsoleApp2
     class Program
     {
         public static SAPbobsCOM.Company oCompany;
-        public static OdbcConnection CnnHANA;
+        static OdbcConnection CnnHANA;
+        public static String DataBaseName = ConfigurationManager.AppSettings["CompanyDB"];
+
+
 
         static void Main(string[] args)
 
 
         {
             Conexion();
-            ConecctOdbc();
+            //ConecctOdbc();
             String consulta;
             var respuesta = false;
             Recordset oRecord = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
@@ -33,9 +36,7 @@ namespace ConsoleApp2
             try
             {
                 consulta = "SELECT T0.\"Code\", T0.\"U_SOL_VISTA\", T0.\"U_SOL_ARCHIVO\", T0.\"U_SOL_RUTA\", T0.\"U_SOL_FORMATO\", T0.\"U_SOL_ACTIVO\", T0.\"U_SOL_AHORA\" FROM \"@SOL_EXPORT_VIEW\"  T0";
-                //Result = 
-                //ObtenerParametos(consulta);
-                //Console.WriteLine(Result);
+
                 DataTable Parametros = ObtenerParametos(consulta);
                 try
                 {
@@ -50,8 +51,7 @@ namespace ConsoleApp2
 
                             if (!string.IsNullOrEmpty(QueryView) )
                             {
-                                //respuesta = ExportView($"SELECT * FROM \"OCTG\"" , Formato, RutaExport, NombreArchivo);
-                                //respuesta = ExportView($"SELECT * FROM \"TEST_SURCOMPANY_270125\".OCTG" , Formato, RutaExport, NombreArchivo);
+
                                 respuesta = ExportView($"Select * from " + QueryView, Formato, RutaExport, NombreArchivo);
                             }
                             
@@ -60,7 +60,7 @@ namespace ConsoleApp2
                 }
                 catch (Exception ex)
                 {
-                    Console.Write(ex.ToString());
+                    EscribeLog("Error en conexion SAP" + ex.StackTrace.ToString());
                 }
 
             }
@@ -70,11 +70,21 @@ namespace ConsoleApp2
             #endregion
         }
 
-       
+        static void EscribeLog(String Message)
+        {
+            var LogFilePath = ConfigurationManager.AppSettings["LogFilePath"];
+            using (StreamWriter SW = new StreamWriter(LogFilePath, true))
+            {
+                SW.WriteLine(DateTime.Now + "|" + Message);
+            }
+        }
+
 
         #region conexionSAP
-        static bool Conexion()
+        static void Conexion()
         {
+            int ErrCode = 0;
+            var ErrMsg = "";
             try
             {
                 oCompany = new SAPbobsCOM.Company();
@@ -85,28 +95,33 @@ namespace ConsoleApp2
                 oCompany.Password = ConfigurationManager.AppSettings["Password"];
                 oCompany.language = BoSuppLangs.ln_Spanish_La;
 
-                if (oCompany.Connect() != 0)
+                ErrCode = oCompany.Connect();
+                if (ErrCode != 0)
                 {
-                    Console.WriteLine($"Error al conectar: {oCompany.GetLastErrorDescription()}");
-                    return false;
+                    oCompany.GetLastError(out ErrCode, out ErrMsg);
+                    EscribeLog("Error de conexion con SAP | " + ErrCode +" "+ ErrMsg);
+                    RegistroLogsSAP("Conexion SAP", ErrCode + " " + ErrMsg);
+                    
                 }
                 else
-                    return true;
+                {
+
+                }
+                   
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                return false;
+                RegistroLogsSAP("Conexion SAP", ex.StackTrace.ToString()) ;
+                
             }
 
         }
         #endregion
         #region ConexionODBC
-        static string ConecctOdbc()
+        static void ConecctOdbc()
         {
 
             string CadOdbc = ConfigurationManager.AppSettings["CadenaODBC"];
-            String R = "";
             
             try
 
@@ -124,23 +139,22 @@ namespace ConsoleApp2
                 }
 
                 CnnHANA = new OdbcConnection(CadOdbc); 
-                if (CnnHANA.State == System.Data.ConnectionState.Open) 
+                if (CnnHANA.State == System.Data.ConnectionState.Closed) 
                 {
-                    R = "OK";
+                    CnnHANA.Open();
                     
                 }
                 else 
-                { 
-                    R = "Error"; 
+                {
+
                 }
 
             }
-            catch (Exception) 
+            catch (Exception ex) 
             {
-                R = "Error";         
+                EscribeLog("Error de conexion ODBC |" + ex.StackTrace.ToString());
             }
 
-            return R.ToString(); 
         }
         #endregion
 
@@ -148,43 +162,57 @@ namespace ConsoleApp2
         #region FUNobtenerParametros
         static DataTable ObtenerParametos(String query)
         {
-            DataTable Parametros = new DataTable();
-            Recordset oRecord = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
-
-            oRecord.DoQuery(query);
-            if (query != null)
+            try
             {
+                int ErrCode = 0;
+                var ErrMsg = "";
 
+                DataTable Parametros = new DataTable();
+                Recordset oRecord = (Recordset)oCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
 
-                for (int i = 0; i < oRecord.Fields.Count; i++)
+                oRecord.DoQuery(query);
+                if (query != null)
                 {
-                    Parametros.Columns.Add(oRecord.Fields.Item(i).Name);
-
-                }
 
 
-                {
-                    while (!oRecord.EoF)
+                    for (int i = 0; i < oRecord.Fields.Count; i++)
                     {
-                        Parametros.Rows.Add(
-                        oRecord.Fields.Item(0).Value.ToString(),
-                        oRecord.Fields.Item(1).Value.ToString(),
-                        oRecord.Fields.Item(2).Value.ToString(),
-                        oRecord.Fields.Item(3).Value.ToString(),
-                        oRecord.Fields.Item(4).Value.ToString(),
-                        oRecord.Fields.Item(5).Value.ToString(),
-                        oRecord.Fields.Item(6).Value.ToString()
-                        );
+                        Parametros.Columns.Add(oRecord.Fields.Item(i).Name);
 
-                        oRecord.MoveNext();
-                        //return "Ok";
                     }
-                    return Parametros;
+
+
+                    {
+                        while (!oRecord.EoF)
+                        {
+                            Parametros.Rows.Add(
+                            oRecord.Fields.Item(0).Value.ToString(),
+                            oRecord.Fields.Item(1).Value.ToString(),
+                            oRecord.Fields.Item(2).Value.ToString(),
+                            oRecord.Fields.Item(3).Value.ToString(),
+                            oRecord.Fields.Item(4).Value.ToString(),
+                            oRecord.Fields.Item(5).Value.ToString(),
+                            oRecord.Fields.Item(6).Value.ToString()
+                            );
+
+                            oRecord.MoveNext();
+                            //return "Ok";
+                        }
+                        return Parametros;
+                    }
                 }
-            }
-            else
+                else
+                {
+                    oCompany.GetLastError(out ErrCode, out ErrMsg);
+                    return null;
+                }
+            } catch (Exception e)
+            {
+                RegistroLogsSAP("Lectura de UDO", e.StackTrace.ToString());
                 return null;
-          
+            }
+
+
 
         }
         #endregion
@@ -206,9 +234,9 @@ namespace ConsoleApp2
 
                 Console.WriteLine($"Archivo Excel creado exitosamente: {filePath}");
             }
-            catch
+            catch (Exception ex)
             {
-                Exception ex;
+                RegistroLogsSAP("Exportar a excel", ex.StackTrace.ToString());
             }
             return true;
         }
@@ -217,7 +245,7 @@ namespace ConsoleApp2
         {
             var separadorCsv = ConfigurationManager.AppSettings["SeparadorCSV"];
             String FileExport = FilePath+"\\"+FileName+"."+Format;
-            CnnHANA.Open();
+            ConecctOdbc();
             DataTable dataTable = new DataTable();
             using (OdbcDataAdapter adapter = new OdbcDataAdapter(queryExport, CnnHANA))
             {
@@ -268,9 +296,9 @@ namespace ConsoleApp2
 
                 CnnHANA.Close();
             }
-            catch
-            { 
-            Exception exception;
+            catch (Exception ex)
+            {
+                RegistroLogsSAP("Exportar a excel", ex.StackTrace.ToString());
                 CnnHANA.Close();
             }
             
@@ -305,7 +333,27 @@ namespace ConsoleApp2
             File.WriteAllText(rutaArchivo, sb.ToString(), Encoding.UTF8);
         }
 
+        static void RegistroLogsSAP(string Etapa, string Mensaje)
+        {
+            //var CadOdbc = ConfigurationManager.AppSettings["CadenaODBC"];
+            var StoredProcedure = $"CALL \"{DataBaseName}\".\"SOL_SP_EXPORTVIEW\" ('{Etapa}', '{Mensaje}')";
+            try
+            {
+                ConecctOdbc();
+                if (CnnHANA.State != ConnectionState.Open)
+                {
+                    CnnHANA.Open();
+                }
+                OdbcCommand cmd = new OdbcCommand(StoredProcedure, CnnHANA);
+                cmd.ExecuteNonQuery();
 
+            }
+            catch (Exception ex)
+            {
+                EscribeLog("Escribir log en tabla de SAP" + ex.StackTrace.ToString());
+            }
+            
+        }
 
     }
 

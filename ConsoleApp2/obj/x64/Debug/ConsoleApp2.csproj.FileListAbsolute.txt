@@ -10,7 +10,6 @@ C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\D
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\Newtonsoft.Json.dll
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\RBush.dll
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\SixLabors.Fonts.dll
-C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\Spire.XLS.dll
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Buffers.dll
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Configuration.ConfigurationManager.dll
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Memory.dll
@@ -26,7 +25,6 @@ C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\D
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\Newtonsoft.Json.xml
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\RBush.xml
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\SixLabors.Fonts.xml
-C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\Spire.XLS.xml
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Buffers.xml
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Configuration.ConfigurationManager.xml
 C:\Users\crist\source\repos\solsetec\ExportViewToFile_HANA\ConsoleApp2\bin\x64\Debug\System.Memory.xml
